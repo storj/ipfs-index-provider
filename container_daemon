@@ -1,0 +1,54 @@
+#!/bin/sh
+set -e
+
+provider --version
+
+CFG=$PROVIDER_PATH/config
+TMPCFG=/tmp/config
+
+# Initialize the index provider config
+if [ -e "$CFG" ]; then
+  echo "Found IPFS fs-repo at $PROVIDER_PATH"
+else
+  provider init
+fi
+
+# Set the node's peer ID, if a predefined one is provided
+if [ ! -z $PROVIDER_IDENTITY_PEER_ID ]; then
+  jq --arg id $PROVIDER_IDENTITY_PEER_ID '.Identity.PeerID=$id' $CFG > $TMPCFG && mv $TMPCFG $CFG
+fi
+
+# Set the private key that matches the peer ID, if provided above
+if [ ! -z $PROVIDER_IDENTITY_PRIVATE_KEY ]; then
+  jq --arg key $PROVIDER_IDENTITY_PRIVATE_KEY '.Identity.PrivKey=$key' $CFG > $TMPCFG && mv $TMPCFG $CFG
+fi
+
+# Provider Server port config
+if [ -z $PROVIDER_SERVER_PORT ]; then PROVIDER_SERVER_PORT=3103; fi
+jq --arg port $PROVIDER_SERVER_PORT '.ProviderServer.ListenMultiaddr="/ip4/0.0.0.0/tcp/" + $port' $CFG > $TMPCFG && mv $TMPCFG $CFG
+
+# Direct Account URLs config
+if [ -z $PROVIDER_DIRECT_ANNOUNCE_URLS ]; then echo "Missing Direct Announce URLs"; exit 1; fi
+jq --argjson urls $PROVIDER_DIRECT_ANNOUNCE_URLS '.DirectAnnounce.URLs=$urls' $CFG > $TMPCFG && mv $TMPCFG $CFG
+
+# Delegated Routing port config
+if [ -z $PROVIDER_ROUTING_PORT ]; then PROVIDER_ROUTING_PORT=50617; fi
+jq --arg port $PROVIDER_ROUTING_PORT '.DelegatedRouting.ListenMultiaddr="/ip4/0.0.0.0/tcp/" + $port' $CFG > $TMPCFG && mv $TMPCFG $CFG
+
+# Delegated Routing Provider ID config
+if [ -z $PROVIDER_KUBO_ID ]; then echo "Missing Kubo ID"; exit 1; fi
+jq --arg id $PROVIDER_KUBO_ID '.DelegatedRouting.ProviderID=$id' $CFG > $TMPCFG && mv $TMPCFG $CFG
+
+# Delegated Routing Addrs config
+if [ -z $PROVIDER_KUBO_ADDRS ]; then echo "Missing Kubo Addrs"; exit 1; fi
+jq --argjson addrs $PROVIDER_KUBO_ADDRS '.DelegatedRouting.Addrs=$addrs' $CFG > $TMPCFG && mv $TMPCFG $CFG
+
+# Print config for debug purposes
+if [ -z $PROVIDER_SHOW_CONFIG ]; then PROVIDER_SHOW_CONFIG=false; fi
+if [[ $PROVIDER_SHOW_CONFIG == "true" ]] ; then
+  # Skip the Identity Private Key for security reasons
+  jq 'del(.Identity.PrivKey)' $CFG
+fi
+
+# Start the index provider daemon
+exec provider daemon
