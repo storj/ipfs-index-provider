@@ -1,6 +1,6 @@
 FROM golang:1.19 as build
 WORKDIR /index-provider
-RUN go install github.com/ipni/index-provider/cmd/provider@8d13e46
+RUN go install github.com/ipni/index-provider/cmd/provider@v0.13.1
 
 COPY . /index-provider
 
