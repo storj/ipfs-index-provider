@@ -10,7 +10,7 @@ docker run --rm -d \
     -e PROVIDER_SERVER_PORT=3103
     -e PROVIDER_ROUTING_PORT=50617
     -e PROVIDER_IDENTITY_PEER_ID=<peer_id>
-    -e PROVIDER_IDENTITY_PRIVATE_KEY=<escaped_privkey>
+    -e PROVIDER_IDENTITY_PRIVATE_KEY=<priv_key>
     -e PROVIDER_DIRECT_ANNOUNCE_URLS='["https://cid.contact/ingest/announce"]'
     -e PROVIDER_KUBO_ID=<peer_id>
     -e PROVIDER_KUBO_ADDRS='["/ip4/<ip4_addr>/tcp/4001","/ip4/<ip4_addr>/udp/4001/quic","/ip6/<ip6_addr>/tcp/4001","/ip6/<ip6_addr>/udp/4001/quic"]'
@@ -25,7 +25,7 @@ Docker images are published to https://hub.docker.com/r/storjlabs/ipfs-index-pro
 
 `PROVIDER_IDENTITY_PEER_ID` can be set optionally to preserve the node identity between runs. The current peer ID can be found under `Identity.PeerID` in the config file.
 
-`PROVIDER_IDENTITY_PRIVATE_KEY` must be set if `PROVIDER_IDENTITY_PEER_ID` is set, and the provided private key must match the peer ID. The current private key can be found under `Identity.PrivKey` in the config file. The provided private key must be properly escaped for the `sed` tool, i.e. it must be wrapped with quotation marks and slashes must be escaped with backslashes.
+`PROVIDER_IDENTITY_PRIVATE_KEY` must be set if `PROVIDER_IDENTITY_PEER_ID` is set, and the provided private key must match the peer ID. The current private key can be found under `Identity.PrivKey` in the config file.
 
 `PROVIDER_DIRECT_ANNOUNCE_URLS` must be set to the list of ingest HTTP URLs of IPNI indexers to directly announce for new advertisements.
 
